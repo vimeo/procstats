@@ -22,7 +22,6 @@ func init() {
 	if _, err := linuxParseCPUTime(b); err != nil {
 		panic(fmt.Sprintf("unexpected kernel shenanigans: %v", err))
 	}
-	validCPUStats.M(0)
 
 	// This burns extra cycles at the beginning of our execution, but allows
 	// us to know the kernel we're running on is actually reporting these numbers.
@@ -43,9 +42,6 @@ func init() {
 				panic(fmt.Sprintf("unexpected kernel shenanigans: %v", err))
 			}
 			ct = &r
-		}
-		if !ct.eq(&CPUTime{}) {
-			validCPUStats.M(1)
 		}
 	}()
 }

@@ -8,6 +8,6 @@ require (
 	github.com/opencontainers/runtime-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
-	go.opencensus.io v0.22.2
+	github.com/stretchr/testify v1.4.0 // indirect
 	golang.org/x/sys v0.0.0-20191218084908-4a24b4065292
 )

@@ -4,15 +4,6 @@ package procstats
 import (
 	"errors"
 	"time"
-
-	"go.opencensus.io/stats"
-	"go.opencensus.io/stats/view"
-)
-
-var (
-	// ViewValid reports a 1 when the package thinks its results can be trusted.
-	ViewValid     = view.View{Measure: validCPUStats, Aggregation: view.LastValue()}
-	validCPUStats = stats.Int64("github.com/vimeo/procstats/cpu_valid", "reported cpu stats are valid", stats.UnitDimensionless)
 )
 
 // ErrUnimplementedPlatform indicates that this request is not implemented for
