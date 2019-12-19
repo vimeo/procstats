@@ -11,7 +11,7 @@ import (
 var ErrUnimplementedPlatform = errors.New("Unimplemented for this platform")
 
 // RSS takes a pid and returns the RSS of that process (or an error)
-// This may return ErrUnimplementedPlatform on non-linux platforms.
+// This may return ErrUnimplementedPlatform on non-linux and non-darwin platforms.
 func RSS(pid int) (int64, error) {
 	return readProcessRSS(pid)
 }
@@ -40,18 +40,21 @@ func (c *CPUTime) Add(other *CPUTime) CPUTime {
 
 // ProcessCPUTime returns either the cumulative CPUTime of the specified
 // process or an error.
+// This is a portable wrapper around platform-specific functions.
 func ProcessCPUTime(pid int) (CPUTime, error) {
 	return readProcessCPUTime(pid)
 }
 
 // MaxRSS returns the maximum RSS (High Water Mark) of the process with PID
 // pid.
+// This is a portable wrapper around platform-specific functions.
 func MaxRSS(pid int) (int64, error) {
 	return readMaxRSS(pid)
 }
 
 // ResetMaxRSS returns the maximum RSS (High Water Mark) of the process with PID
 // pid.
+// This is a portable wrapper around platform-specific functions.
 func ResetMaxRSS(pid int) error {
 	return resetMaxRSS(pid)
 }

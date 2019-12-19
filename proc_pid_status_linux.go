@@ -11,7 +11,9 @@ import (
 	"github.com/vimeo/procstats/pparser"
 )
 
-type procPidStatus struct {
+// ProcPidStatus represents the contents of /proc/$PID/status, and is intended
+// to be parsed by the pparser subpackage.
+type ProcPidStatus struct {
 	Name                     string
 	Umask                    uint8
 	State                    string
@@ -69,16 +71,21 @@ type procPidStatus struct {
 	UnknownFields            map[string]string `pparser:"skip,unknown"`
 }
 
-var procPidStatusParser = pparser.NewLineKVFileParser(procPidStatus{}, ":")
+var procPidStatusParser = pparser.NewLineKVFileParser(ProcPidStatus{}, ":")
 
-func readProcStatus(pid int) (*procPidStatus, error) {
+// ReadProcStatus reads the /proc/$pid/status for the specified pid and returns
+// a ProcPidStatus.
+// Note: this only works under linux, and is not available on other platforms.
+// Portable applications should use the higher-level wrappers in this package
+// (ProcessCPUTime, MaxRSS, and RSS) rather than the low-level.
+func ReadProcStatus(pid int) (*ProcPidStatus, error) {
 	statusPath := filepath.Join("/proc", strconv.Itoa(pid), "status")
 	contents, err := ioutil.ReadFile(statusPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file %q: %s",
 			statusPath, err)
 	}
-	out := procPidStatus{}
+	out := ProcPidStatus{}
 	if parseErr := procPidStatusParser.Parse(contents, &out); parseErr != nil {
 		return nil, fmt.Errorf("failed to parse contents of %q: %s",
 			statusPath, parseErr)
@@ -89,7 +96,7 @@ func readProcStatus(pid int) (*procPidStatus, error) {
 }
 
 func readMaxRSS(pid int) (int64, error) {
-	status, err := readProcStatus(pid)
+	status, err := ReadProcStatus(pid)
 	if err != nil {
 		return -1, fmt.Errorf("failed to obtain status: %s", err)
 	}

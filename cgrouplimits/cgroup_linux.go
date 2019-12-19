@@ -112,17 +112,40 @@ func GetCgroupMemoryStats() (MemoryStats, error) {
 	return ms, nil
 }
 
-type memCgroupOOMControl struct {
+// MemCgroupOOMControl contains the parsed contents of the cgroup's
+// memory.oom_control file.
+// Note that this struct is a linux-specific data-structure that should not be
+// used in portable applications.
+type MemCgroupOOMControl struct {
 	OomKillDisable int64            `pparser:"oom_kill_disable"`
 	UnderOom       int64            `pparser:"under_oom"`
 	OomKill        int64            `pparser:"oom_kill"`
 	UnknownFields  map[string]int64 `pparser:"skip,unknown"`
 }
 
+// ReadCGroupOOMControl reads the file passed as an argument. Parsing the
+// contents into a MemCgroupOOMControl struct.
+// Note that this is a non-portable linux-specific function that should not be
+// used in portable applications.
+func ReadCGroupOOMControl(oomControlPath string) (MemCgroupOOMControl, error) {
+	oomControlBytes, oomControlReadErr := ioutil.ReadFile(oomControlPath)
+	if oomControlReadErr != nil {
+		return MemCgroupOOMControl{}, fmt.Errorf(
+			"failed to read contents of %q: %s",
+			oomControlPath, oomControlReadErr)
+	}
+	oomc := MemCgroupOOMControl{}
+	parseErr := memCgroupOOMControlFieldIdx.Parse(oomControlBytes, &oomc)
+	if parseErr != nil {
+		return MemCgroupOOMControl{}, parseErr
+	}
+	return oomc, nil
+}
+
 var memCgroupOOMControlFieldIdx *pparser.LineKVFileParser
 
 func init() {
-	memCgroupOOMControlFieldIdx = pparser.NewLineKVFileParser(memCgroupOOMControl{}, " ")
+	memCgroupOOMControlFieldIdx = pparser.NewLineKVFileParser(MemCgroupOOMControl{}, " ")
 }
 
 // getCgroupOOMs looks up the current number of oom kills for the current cgroup.
@@ -132,16 +155,9 @@ func getCgroupOOMs() (int32, error) {
 		return -1, fmt.Errorf("Unable to find cgroup directory: %s", cgroupFindErr)
 	}
 	oomControlPath := filepath.Join(memPath, cgroupMemOOMControlFile)
-	oomControlBytes, oomControlReadErr := ioutil.ReadFile(oomControlPath)
-	if oomControlReadErr != nil {
-		return 0, fmt.Errorf(
-			"failed to read contents of %q: %s",
-			oomControlPath, oomControlReadErr)
-	}
-	oomc := memCgroupOOMControl{}
-	parseErr := memCgroupOOMControlFieldIdx.Parse(oomControlBytes, &oomc)
-	if parseErr != nil {
-		return 0, parseErr
+	oomc, readErr := ReadCGroupOOMControl(oomControlPath)
+	if readErr != nil {
+		return 0, readErr
 	}
 
 	// The oom_kill line was only added to the oom_control file in linux
