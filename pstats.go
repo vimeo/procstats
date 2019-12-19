@@ -44,12 +44,6 @@ func ProcessCPUTime(pid int) (CPUTime, error) {
 	return readProcessCPUTime(pid)
 }
 
-// Eq reports if the two CPUTimes are equal.
-func (c *CPUTime) eq(b *CPUTime) bool {
-	return c.Utime == b.Utime &&
-		c.Stime == b.Stime
-}
-
 // MaxRSS returns the maximum RSS (High Water Mark) of the process with PID
 // pid.
 func MaxRSS(pid int) (int64, error) {
