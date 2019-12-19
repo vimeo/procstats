@@ -96,7 +96,7 @@ func GetCgroupMemoryStats() (MemoryStats, error) {
 	}
 	msUsage := st.MemoryStats.Usage
 
-	ooms, oomErr := getCgroupOOMs()
+	ooms, oomErr := getCgroupOOMs(memPath)
 	if oomErr != nil {
 		return MemoryStats{}, fmt.Errorf("failed to look up OOMKills: %s",
 			oomErr)
@@ -123,11 +123,13 @@ type MemCgroupOOMControl struct {
 	UnknownFields  map[string]int64 `pparser:"skip,unknown"`
 }
 
-// ReadCGroupOOMControl reads the file passed as an argument. Parsing the
-// contents into a MemCgroupOOMControl struct.
+// ReadCGroupOOMControl reads the oom_control file for the cgroup directory
+// passed as an argument. Parsing the contents into a MemCgroupOOMControl
+// struct.
 // Note that this is a non-portable linux-specific function that should not be
 // used in portable applications.
-func ReadCGroupOOMControl(oomControlPath string) (MemCgroupOOMControl, error) {
+func ReadCGroupOOMControl(memCgroupPath string) (MemCgroupOOMControl, error) {
+	oomControlPath := filepath.Join(memCgroupPath, cgroupMemOOMControlFile)
 	oomControlBytes, oomControlReadErr := ioutil.ReadFile(oomControlPath)
 	if oomControlReadErr != nil {
 		return MemCgroupOOMControl{}, fmt.Errorf(
@@ -148,14 +150,10 @@ func init() {
 	memCgroupOOMControlFieldIdx = pparser.NewLineKVFileParser(MemCgroupOOMControl{}, " ")
 }
 
-// getCgroupOOMs looks up the current number of oom kills for the current cgroup.
-func getCgroupOOMs() (int32, error) {
-	memPath, cgroupFindErr := cgroups.GetOwnCgroupPath("memory")
-	if cgroupFindErr != nil {
-		return -1, fmt.Errorf("Unable to find cgroup directory: %s", cgroupFindErr)
-	}
-	oomControlPath := filepath.Join(memPath, cgroupMemOOMControlFile)
-	oomc, readErr := ReadCGroupOOMControl(oomControlPath)
+// getCgroupOOMs looks up the current number of oom kills for the cgroup
+// specified by the path in its argument.
+func getCgroupOOMs(memCgroupPath string) (int32, error) {
+	oomc, readErr := ReadCGroupOOMControl(memCgroupPath)
 	if readErr != nil {
 		return 0, readErr
 	}
