@@ -33,6 +33,10 @@ func fieldIndex(t interface{}) (map[string]int, int, reflect.Kind) {
 	unknownKind := reflect.Invalid
 
 	objType := reflect.TypeOf(t)
+	if objType.Kind() != reflect.Struct {
+		panic(fmt.Sprintf("concrete type must be passed to NewLineKVFileParser, got %s",
+			objType))
+	}
 	for i := 0; i < objType.NumField(); i++ {
 
 		field := objType.Field(i)
@@ -64,12 +68,17 @@ func fieldIndex(t interface{}) (map[string]int, int, reflect.Kind) {
 }
 
 // NewLineKVFileParser constructs a new LineKVFileParser instance for the type
-// passed as an argument. the UnknownFields field should be of type
+// passed as an argument. The UnknownFields field should be of type
 // `map[string]int`, exported and have a `pparser:skip,unknown` struct field
 // tag.
 // Fields with the `pparser:"skip"` tag will be ignored. Any other value for
-// the pparser field tag is interpreted as a prefered name for that field's key
+// the pparser field tag is interpreted as a preferred name for that field's key
 // in the file.
+// LineKVFileParser instances returned by NewLineKVFileParser contain an
+// embedded index to make parsing a bit less inefficient. The `t` argument must
+// be of the concrete struct-type, not a pointer to that type.
+// Note: this is intended to be called once at startup for a type (usually
+// within an `init()` func or as a package-level variable declaration).
 func NewLineKVFileParser(t interface{}, splitKey string) *LineKVFileParser {
 	idx, unknownIdx, unknownKind := fieldIndex(t)
 
@@ -243,9 +252,14 @@ func (p *LineKVFileParser) setStringField(
 	return nil
 }
 
-// Parse takes file-contents and an out-variable to populate
+// Parse takes file-contents and an out-variable to populate. The out argument
+// must be a pointer to the same type as passed to NewLineKVFileParser.
 func (p *LineKVFileParser) Parse(contentBytes []byte, out interface{}) error {
 	outVal := reflect.ValueOf(out).Elem()
+	if outVal.Type() != p.structType {
+		return fmt.Errorf("mismatched types: indexed %s, but passed %s",
+			p.structType, outVal.Type())
+	}
 
 	b := bytes.NewBuffer(contentBytes)
 	line, err := b.ReadString('\n')
