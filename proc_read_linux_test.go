@@ -76,7 +76,7 @@ func TestReadCPUUsage(t *testing.T) {
 			if err != nil {
 				t.Fatalf("want: %v, got: %v", c.Err, err)
 			}
-			if want, got := c.Want, ct; !want.eq(&got) {
+			if want, got := c.Want, ct; want != got {
 				t.Fatalf("want: %v, got: %v", want, got)
 			}
 		})
@@ -91,7 +91,7 @@ func TestReadCPUUsage(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if ct.eq(&CPUTime{}) {
+		if ct == (CPUTime{}) {
 			t.Errorf("want: <non-zero>, got: %+v", ct)
 		}
 	})

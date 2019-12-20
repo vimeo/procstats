@@ -31,7 +31,7 @@ func init() {
 		t := time.NewTicker(time.Second)
 		defer t.Stop()
 		var ct *CPUTime
-		for i := 0; i < 30 || ct.eq(&CPUTime{}); i++ {
+		for i := 0; i < 30 || (*ct == CPUTime{}); i++ {
 			<-t.C
 			b, err := ioutil.ReadFile(self)
 			if err != nil {
