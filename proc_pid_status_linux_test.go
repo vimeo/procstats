@@ -58,7 +58,7 @@ Mems_allowed_list:	0
 voluntary_ctxt_switches:	1163
 nonvoluntary_ctxt_switches:	597`
 
-	out := procPidStatus{}
+	out := ProcPidStatus{}
 	if parseErr := procPidStatusParser.Parse([]byte(procSelfStatus), &out); parseErr != nil {
 		t.Fatalf("failed to parse: %s", parseErr)
 	}
