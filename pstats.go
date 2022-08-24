@@ -8,7 +8,7 @@ import (
 
 // ErrUnimplementedPlatform indicates that this request is not implemented for
 // this specific platform.
-var ErrUnimplementedPlatform = errors.New("Unimplemented for this platform")
+var ErrUnimplementedPlatform = errors.New("unimplemented for this platform")
 
 // RSS takes a pid and returns the RSS of that process (or an error)
 // This may return ErrUnimplementedPlatform on non-linux and non-darwin platforms.

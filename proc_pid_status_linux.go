@@ -1,10 +1,11 @@
+//go:build linux
 // +build linux
 
 package procstats
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strconv"
 
@@ -80,7 +81,7 @@ var procPidStatusParser = pparser.NewLineKVFileParser(ProcPidStatus{}, ":")
 // (ProcessCPUTime, MaxRSS, and RSS) rather than the low-level.
 func ReadProcStatus(pid int) (*ProcPidStatus, error) {
 	statusPath := filepath.Join("/proc", strconv.Itoa(pid), "status")
-	contents, err := ioutil.ReadFile(statusPath)
+	contents, err := os.ReadFile(statusPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file %q: %s",
 			statusPath, err)
@@ -117,5 +118,5 @@ func resetMaxRSS(pid int) error {
 	//	                           current resident set size value.
 
 	// As such, write the value "5" to /proc/$PID/clear_refs to reset the VmHWM value.
-	return ioutil.WriteFile(refsPath, []byte{'5'}, 0)
+	return os.WriteFile(refsPath, []byte{'5'}, 0)
 }

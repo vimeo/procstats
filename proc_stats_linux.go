@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 package procstats
@@ -5,7 +6,6 @@ package procstats
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -15,7 +15,7 @@ import (
 
 func init() {
 	const self = "/proc/self/stat"
-	b, err := ioutil.ReadFile(self)
+	b, err := os.ReadFile(self)
 	if err != nil {
 		panic(fmt.Sprintf("unexpected kernel shenanigans: %v", err))
 	}
@@ -33,7 +33,7 @@ func init() {
 		var ct *CPUTime
 		for i := 0; i < 30 || (*ct == CPUTime{}); i++ {
 			<-t.C
-			b, err := ioutil.ReadFile(self)
+			b, err := os.ReadFile(self)
 			if err != nil {
 				panic(fmt.Sprintf("unexpected kernel shenanigans: %v", err))
 			}
@@ -52,7 +52,7 @@ func procFileName(pid int, leafName string) string {
 
 func procFileContents(pid int, leafName string) ([]byte, error) {
 	fn := procFileName(pid, leafName)
-	contents, err := ioutil.ReadFile(fn)
+	contents, err := os.ReadFile(fn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read %s with error: %s", leafName, err)
 	}
