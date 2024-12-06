@@ -91,7 +91,7 @@ func TestReadCPUUsage(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if ct == (CPUTime{}) {
+		if ct.eq(&CPUTime{}) {
 			t.Errorf("want: <non-zero>, got: %+v", ct)
 		}
 	})

@@ -31,7 +31,7 @@ func init() {
 		t := time.NewTicker(time.Second)
 		defer t.Stop()
 		var ct *CPUTime
-		for i := 0; i < 30 || (*ct == CPUTime{}); i++ {
+		for i := 0; i < 30 || ct.eq(&CPUTime{}); i++ {
 			<-t.C
 			b, err := os.ReadFile(self)
 			if err != nil {
@@ -142,6 +142,7 @@ func linuxParseCPUTime(b []byte) (r CPUTime, err error) {
 		return r, fmt.Errorf("insufficient fields present in stat: %d",
 			len(statFields))
 	}
+
 	utimeTicks, err := strconv.ParseInt(string(statFields[13]), 10, 64)
 	if err != nil {
 		return r, fmt.Errorf("failed to parse the utime column of stat: %s",
