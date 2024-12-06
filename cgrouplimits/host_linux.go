@@ -1,17 +1,18 @@
+//go:build linux
 // +build linux
 
 package cgrouplimits
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/vimeo/procstats/pparser"
 )
 
 func getMemInfo() (hostMemInfo, error) {
 	const procMemInfo = "/proc/meminfo"
-	memInfoBytes, procReadErr := ioutil.ReadFile(procMemInfo)
+	memInfoBytes, procReadErr := os.ReadFile(procMemInfo)
 	if procReadErr != nil {
 		return hostMemInfo{}, fmt.Errorf(
 			"failed to read contents of %q: %s",
@@ -30,7 +31,7 @@ func getMemInfo() (hostMemInfo, error) {
 func getVMStat() (hostVMStat, error) {
 
 	const procVMStat = "/proc/vmstat"
-	vmStatBytes, procReadErr := ioutil.ReadFile(procVMStat)
+	vmStatBytes, procReadErr := os.ReadFile(procVMStat)
 	if procReadErr != nil {
 		return hostVMStat{}, fmt.Errorf(
 			"failed to read contents of %q: %s",

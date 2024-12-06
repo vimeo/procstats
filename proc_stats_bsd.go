@@ -1,5 +1,5 @@
-// +build freebsd
-// +build cgo
+//go:build freebsd && cgo
+// +build freebsd,cgo
 
 package procstats
 

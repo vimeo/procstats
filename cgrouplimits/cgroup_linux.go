@@ -1,10 +1,11 @@
+//go:build linux
 // +build linux
 
 package cgrouplimits
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -27,16 +28,16 @@ const cgroupMemOOMControlFile = "memory.oom_control"
 func GetCgroupCPULimit() (float64, error) {
 	cpuPath, cgroupFindErr := cgroups.GetOwnCgroupPath("cpu")
 	if cgroupFindErr != nil {
-		return -1.0, fmt.Errorf("Unable to find cgroup directory: %s", cgroupFindErr)
+		return -1.0, fmt.Errorf("unable to find cgroup directory: %s", cgroupFindErr)
 	}
 
 	quotaFilePath := filepath.Join(cpuPath, cgroupCFSQuotaFile)
-	quotaStr, quotaReadErr := ioutil.ReadFile(quotaFilePath)
+	quotaStr, quotaReadErr := os.ReadFile(quotaFilePath)
 	if quotaReadErr != nil {
 		return -1.0, fmt.Errorf("failed to read quota file %q: %s", quotaFilePath, quotaReadErr)
 	}
 	enforcePeriodFilePath := filepath.Join(cpuPath, cgroupCFSPeriodFile)
-	enforcePeriodStr, periodReadErr := ioutil.ReadFile(enforcePeriodFilePath)
+	enforcePeriodStr, periodReadErr := os.ReadFile(enforcePeriodFilePath)
 	if periodReadErr != nil {
 		return -1.0, fmt.Errorf("failed to read cfs period file %q: %s",
 			enforcePeriodFilePath, periodReadErr)
@@ -66,10 +67,10 @@ func GetCgroupCPULimit() (float64, error) {
 func GetCgroupMemoryLimit() (int64, error) {
 	memPath, cgroupFindErr := cgroups.GetOwnCgroupPath("memory")
 	if cgroupFindErr != nil {
-		return -1, fmt.Errorf("Unable to find cgroup directory: %s", cgroupFindErr)
+		return -1, fmt.Errorf("unable to find cgroup directory: %s", cgroupFindErr)
 	}
 	limitFilePath := filepath.Join(memPath, cgroupMemLimitFile)
-	limitFileContents, limitReadErr := ioutil.ReadFile(limitFilePath)
+	limitFileContents, limitReadErr := os.ReadFile(limitFilePath)
 	if limitReadErr != nil {
 		return -1, fmt.Errorf("failed to read cgroup memory limit file %q: %s",
 			limitFilePath, limitReadErr)
@@ -87,7 +88,7 @@ func GetCgroupMemoryLimit() (int64, error) {
 func GetCgroupMemoryStats() (MemoryStats, error) {
 	memPath, cgroupFindErr := cgroups.GetOwnCgroupPath("memory")
 	if cgroupFindErr != nil {
-		return MemoryStats{}, fmt.Errorf("Unable to find cgroup directory: %s", cgroupFindErr)
+		return MemoryStats{}, fmt.Errorf("unable to find cgroup directory: %s", cgroupFindErr)
 	}
 	mg := fs.MemoryGroup{}
 	st := cgroups.NewStats()
@@ -130,7 +131,7 @@ type MemCgroupOOMControl struct {
 // used in portable applications.
 func ReadCGroupOOMControl(memCgroupPath string) (MemCgroupOOMControl, error) {
 	oomControlPath := filepath.Join(memCgroupPath, cgroupMemOOMControlFile)
-	oomControlBytes, oomControlReadErr := ioutil.ReadFile(oomControlPath)
+	oomControlBytes, oomControlReadErr := os.ReadFile(oomControlPath)
 	if oomControlReadErr != nil {
 		return MemCgroupOOMControl{}, fmt.Errorf(
 			"failed to read contents of %q: %s",
@@ -168,12 +169,12 @@ func getCgroupOOMs(memCgroupPath string) (int32, error) {
 func GetCgroupCPUStats() (CPUStats, error) {
 	cpuPath, cgroupFindErr := cgroups.GetOwnCgroupPath("cpu")
 	if cgroupFindErr != nil {
-		return CPUStats{}, fmt.Errorf("Unable to find cgroup directory: %s",
+		return CPUStats{}, fmt.Errorf("unable to find cgroup directory: %s",
 			cgroupFindErr)
 	}
 	cpuAcctPath, cgroupFindErr := cgroups.GetOwnCgroupPath("cpuacct")
 	if cgroupFindErr != nil {
-		return CPUStats{}, fmt.Errorf("Unable to find cgroup directory: %s",
+		return CPUStats{}, fmt.Errorf("unable to find cgroup directory: %s",
 			cgroupFindErr)
 	}
 	cg := fs.CpuGroup{}
