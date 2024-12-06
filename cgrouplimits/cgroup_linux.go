@@ -13,6 +13,7 @@ import (
 
 	"github.com/opencontainers/runc/libcontainer/cgroups"
 	"github.com/opencontainers/runc/libcontainer/cgroups/fs"
+
 	"github.com/vimeo/procstats"
 	"github.com/vimeo/procstats/pparser"
 )
@@ -145,11 +146,7 @@ func ReadCGroupOOMControl(memCgroupPath string) (MemCgroupOOMControl, error) {
 	return oomc, nil
 }
 
-var memCgroupOOMControlFieldIdx *pparser.LineKVFileParser
-
-func init() {
-	memCgroupOOMControlFieldIdx = pparser.NewLineKVFileParser(MemCgroupOOMControl{}, " ")
-}
+var memCgroupOOMControlFieldIdx = pparser.NewLineKVFileParser(MemCgroupOOMControl{}, " ")
 
 // getCgroupOOMs looks up the current number of oom kills for the cgroup
 // specified by the path in its argument.

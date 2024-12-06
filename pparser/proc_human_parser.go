@@ -79,10 +79,10 @@ func fieldIndex(t interface{}) (map[string]int, int, reflect.Kind) {
 // be of the concrete struct-type, not a pointer to that type.
 // Note: this is intended to be called once at startup for a type (usually
 // within an `init()` func or as a package-level variable declaration).
-func NewLineKVFileParser(t interface{}, splitKey string) *LineKVFileParser {
+func NewLineKVFileParser[T any](t T, splitKey string) *LineKVFileParser[T] {
 	idx, unknownIdx, unknownKind := fieldIndex(t)
 
-	return &LineKVFileParser{
+	return &LineKVFileParser[T]{
 		idx:              idx,
 		splitKey:         splitKey,
 		unknownFieldsIdx: unknownIdx,
@@ -94,7 +94,7 @@ func NewLineKVFileParser(t interface{}, splitKey string) *LineKVFileParser {
 
 // LineKVFileParser provides a Parse(), it is not mutated by Parse(), and as
 // such is thread-agnostic.
-type LineKVFileParser struct {
+type LineKVFileParser[T any] struct {
 	idx              map[string]int
 	splitKey         string
 	unknownFieldsIdx int
@@ -109,7 +109,7 @@ func trimStringWithMultiplier(s string) (string, int64) {
 	return s, 1
 }
 
-func (p *LineKVFileParser) fieldKind(fieldName string) reflect.Kind {
+func (p *LineKVFileParser[T]) fieldKind(fieldName string) reflect.Kind {
 	fieldIndex, knownField := p.idx[fieldName]
 	if !knownField {
 		return p.unknownKind
@@ -117,7 +117,7 @@ func (p *LineKVFileParser) fieldKind(fieldName string) reflect.Kind {
 	return p.structType.Field(fieldIndex).Type.Kind()
 }
 
-func (p *LineKVFileParser) setIntField(
+func (p *LineKVFileParser[T]) setIntField(
 	outVal *reflect.Value, fieldName string, fieldValue int64) error {
 	fieldIndex, knownField := p.idx[fieldName]
 	var f reflect.Value
@@ -154,7 +154,7 @@ func (p *LineKVFileParser) setIntField(
 	return nil
 }
 
-func (p *LineKVFileParser) setUintField(
+func (p *LineKVFileParser[T]) setUintField(
 	outVal *reflect.Value, fieldName string, fieldValue uint64) error {
 	fieldIndex, knownField := p.idx[fieldName]
 	var f reflect.Value
@@ -191,7 +191,7 @@ func (p *LineKVFileParser) setUintField(
 	return nil
 }
 
-func (p *LineKVFileParser) setFloatField(
+func (p *LineKVFileParser[T]) setFloatField(
 	outVal *reflect.Value, fieldName string, fieldValue float64) error {
 	fieldIndex, knownField := p.idx[fieldName]
 	var f reflect.Value
@@ -227,7 +227,7 @@ func (p *LineKVFileParser) setFloatField(
 
 	return nil
 }
-func (p *LineKVFileParser) setStringField(
+func (p *LineKVFileParser[T]) setStringField(
 	outVal *reflect.Value, fieldName, fieldValue string) error {
 	fieldIndex, knownField := p.idx[fieldName]
 	var f reflect.Value
@@ -254,12 +254,8 @@ func (p *LineKVFileParser) setStringField(
 
 // Parse takes file-contents and an out-variable to populate. The out argument
 // must be a pointer to the same type as passed to NewLineKVFileParser.
-func (p *LineKVFileParser) Parse(contentBytes []byte, out interface{}) error {
+func (p *LineKVFileParser[T]) Parse(contentBytes []byte, out *T) error {
 	outVal := reflect.ValueOf(out).Elem()
-	if outVal.Type() != p.structType {
-		return fmt.Errorf("mismatched types: indexed %s, but passed %s",
-			p.structType, outVal.Type())
-	}
 
 	b := bytes.NewBuffer(contentBytes)
 	line, err := b.ReadString('\n')
@@ -277,8 +273,8 @@ func (p *LineKVFileParser) Parse(contentBytes []byte, out interface{}) error {
 		switch k {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			{
-				trimmedVal, mul := trimStringWithMultiplier(trimmedVal)
-				val, intParseErr := strconv.ParseInt(trimmedVal, 10, 64)
+				trimmedIntVal, mul := trimStringWithMultiplier(trimmedVal)
+				val, intParseErr := strconv.ParseInt(trimmedIntVal, 10, 64)
 				if intParseErr != nil {
 					return fmt.Errorf("failed to parse line %q: %s",
 						line, intParseErr)
@@ -291,8 +287,8 @@ func (p *LineKVFileParser) Parse(contentBytes []byte, out interface{}) error {
 			}
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			{
-				trimmedVal, mul := trimStringWithMultiplier(trimmedVal)
-				val, intParseErr := strconv.ParseUint(trimmedVal, 10, 64)
+				trimmedUintVal, mul := trimStringWithMultiplier(trimmedVal)
+				val, intParseErr := strconv.ParseUint(trimmedUintVal, 10, 64)
 				if intParseErr != nil {
 					return fmt.Errorf("failed to parse line %q: %s",
 						line, intParseErr)
@@ -305,8 +301,8 @@ func (p *LineKVFileParser) Parse(contentBytes []byte, out interface{}) error {
 			}
 		case reflect.Float32, reflect.Float64:
 			{
-				trimmedVal, mul := trimStringWithMultiplier(trimmedVal)
-				val, floatParseErr := strconv.ParseFloat(trimmedVal, 64)
+				trimmedFloatVal, mul := trimStringWithMultiplier(trimmedVal)
+				val, floatParseErr := strconv.ParseFloat(trimmedFloatVal, 64)
 				if floatParseErr != nil {
 					return fmt.Errorf("failed to parse line %q: %s",
 						line, floatParseErr)
