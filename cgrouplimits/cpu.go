@@ -1,3 +1,6 @@
+// Package cgrouplimits provides abstractions for getting resource usage on various
+// platforms and environments. e.g. it supports running with and
+// without cgroups (containers) as well as darwin.
 package cgrouplimits
 
 import (
@@ -35,7 +38,7 @@ type CPUStats struct {
 // CPUStat queries the current system-state for CPU usage and limits.
 // Limit is always filled in, other fields are only present if there's a
 // non-nil error.
-// Currently only works within cgroups with memory-limits (CS-34)
+// Currently only works within cgroups with cpu-limits (CS-34)
 func CPUStat() (CPUStats, error) {
 	cgcpustats, err := GetCgroupCPUStats()
 	// TODO(CS-34): implement a host-level fallback for the non-l-limit

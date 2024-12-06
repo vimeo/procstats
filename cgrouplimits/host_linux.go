@@ -135,13 +135,10 @@ type hostMemInfo struct {
 
 // hostMemInfoFieldIdx is an index of the name in /proc/meminfo to the field
 // index in the hostMemInfo struct.
-var hostMemInfoFieldIdx *pparser.LineKVFileParser
-var hostVMStatFieldIdx *pparser.LineKVFileParser
-
-func init() {
+var (
 	hostMemInfoFieldIdx = pparser.NewLineKVFileParser(hostMemInfo{}, ":")
-	hostVMStatFieldIdx = pparser.NewLineKVFileParser(hostVMStat{}, " ")
-}
+	hostVMStatFieldIdx  = pparser.NewLineKVFileParser(hostVMStat{}, " ")
+)
 
 // fields from /proc/vmstat pulled from "mm/vmstat.c"
 // generated with c&p of vmstat_text[] followed by some regexp mangling
