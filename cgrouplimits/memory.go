@@ -2,6 +2,7 @@ package cgrouplimits
 
 // MemoryStats encapsulates memory limits, usage and available.
 type MemoryStats struct {
+	// Total memory in the container/system
 	Total int64
 	// Free treats data in the kernel-page-cache for the cgroup/system as
 	// "used"
